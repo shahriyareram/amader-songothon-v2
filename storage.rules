@@ -1,0 +1,43 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if user is Admin
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.uid == "2YNWowSVMrPBf8HwLlitJcJuMum2" ||
+        request.auth.token.email == "shahriyareram94@gmail.com"
+      );
+    }
+
+    // Member profile images isolated by user ID
+    // Member A can ONLY upload/modify images under their own path /profile_photos/{userId}/
+    match /profile_photos/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+
+    match /avatars/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Splash Screen official logo & assets
+    // Public read ensures splash screen loads official logo on startup before user authentication
+    match /splash/{allPaths=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Default: only admin can write to other storage paths
+    match /{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

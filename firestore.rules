@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Members Collection (Weekly records, deposits, dues)
+    match /members/{memberId} {
+      allow read, write: if true;
+    }
+
+    // 2. Payments Collection
+    match /payments/{paymentId} {
+      allow read, write: if true;
+    }
+
+    // 3. Transactions Collection (Deposit records)
+    match /transactions/{transactionId} {
+      allow read, write: if true;
+    }
+
+    // 4. Organization Settings Collection
+    match /settings/{settingId} {
+      allow read, write: if true;
+    }
+
+    // 5. Users Collection
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // 6. Annual Expenses Collection
+    match /annualExpenses/{expenseId} {
+      allow read, write: if true;
+    }
+
+    // 7. FCM Push Notification Tokens Collection
+    match /fcmTokens/{tokenId} {
+      allow read, write: if true;
+    }
+
+    // 8. Notification Events Collection
+    match /notificationEvents/{eventId} {
+      allow read, write: if true;
+    }
+
+    // 9. App Assets Collection
+    match /appAssets/{assetId=**} {
+      allow read, write: if true;
+    }
+
+    // Global Catch-all: allow read, write if true
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

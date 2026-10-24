@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- White monochrome notification silhouette: Shield with central Checkmark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,1L3,5v6c0,5.55 3.84,10.74 9,12c5.16,-1.26 9,-6.45 9,-12V5L12,1zM19,11c0,4.52 -2.98,8.69 -7,9.93c-4.02,-1.24 -7,-5.41 -7,-9.93V6.3l7,-3.11l7,3.11V11zM10,15.59L6.71,12.3l1.41,-1.41L10,12.77l5.88,-5.88l1.41,1.41L10,15.59z"/>
+</vector>

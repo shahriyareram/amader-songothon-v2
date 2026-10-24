@@ -1,0 +1,163 @@
+{
+  "entities": {
+    "members": {
+      "title": "Member",
+      "description": "Organization member records with 52-week deposit details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "serialNumber": { "type": "number" },
+        "memberCode": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "joinedDate": { "type": "string" },
+        "avatarColor": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "notes": { "type": "string" },
+        "totalDeposited": { "type": "number" },
+        "uid": { "type": "string" },
+        "Role": { "type": "string" },
+        "Status": { "type": "string" },
+        "Weekly Amount": { "type": "number" },
+        "fcmToken": { "type": "string" },
+        "fcmUpdatedAt": { "type": "string" },
+        "notificationsEnabled": { "type": "boolean" },
+        "weeklyRecords": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      },
+      "required": ["name"]
+    },
+    "payments": {
+      "title": "Member Payment",
+      "description": "Weekly payment records in payments collection",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "memberId": { "type": "string" },
+        "uid": { "type": "string" },
+        "amount": { "type": "number" },
+        "weekNumber": { "type": "number" },
+        "date": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    },
+    "transactions": {
+      "title": "Deposit Transaction",
+      "description": "Weekly deposit payment transactions and receipts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "memberId": { "type": "string" },
+        "memberName": { "type": "string" },
+        "memberCode": { "type": "string" },
+        "weekNumber": { "type": "number" },
+        "amount": { "type": "number" },
+        "date": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "receiptNo": { "type": "string" }
+      },
+      "required": ["id", "memberId", "weekNumber", "amount", "date"]
+    },
+    "settings": {
+      "title": "Organization Settings",
+      "description": "Global organization configuration, target amount, current week, splash screen configuration, and official WhatsApp group invite link",
+      "type": "object",
+      "properties": {
+        "orgName": { "type": "string" },
+        "weeklyTarget": { "type": "number" },
+        "currentWeek": { "type": "number" },
+        "currentYear": { "type": "number" },
+        "adminPin": { "type": "string" },
+        "whatsappGroupUrl": { "type": "string" },
+        "splashEnabled": { "type": "boolean" },
+        "splashDuration": { "type": "number" },
+        "splashTransition": { "type": "string" },
+        "splashLogo": { "type": "string" },
+        "splashLogoUrl": { "type": "string" }
+      },
+      "required": ["orgName", "weeklyTarget", "currentWeek", "currentYear"]
+    },
+    "annualExpenses": {
+      "title": "Annual Expense",
+      "description": "Annual organizational expense record per year",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "year": { "type": "number" },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "date": { "type": "string" },
+        "recordedBy": { "type": "string" }
+      },
+      "required": ["id", "year", "amount", "description", "date"]
+    },
+    "fcmTokens": {
+      "title": "FCM Device Token",
+      "description": "Firebase Cloud Messaging registration tokens mapped to specific member profiles",
+      "type": "object",
+      "properties": {
+        "token": { "type": "string" },
+        "memberId": { "type": "string" },
+        "memberName": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string" },
+        "platform": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "lastActiveAt": { "type": "number" }
+      },
+      "required": ["token", "memberId"]
+    },
+    "notificationEvents": {
+      "title": "Notification Event",
+      "description": "Prepared notification records queued for members with status and confirmation timestamps",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "memberId": { "type": "string" },
+        "type": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "status": { "type": "string" },
+        "confirmedAt": { "type": "string" },
+        "sentAt": { "type": "string" },
+        "weekNumber": { "type": "number" },
+        "amount": { "type": "number" },
+        "receiptNo": { "type": "string" }
+      },
+      "required": ["id", "memberId", "type", "message", "createdAt", "status"]
+    }
+  },
+  "firestore": {
+    "/members/{memberId}": {
+      "schema": "members",
+      "description": "Member documents including 52 weekly records"
+    },
+    "/fcmTokens/{tokenId}": {
+      "schema": "fcmTokens",
+      "description": "FCM registration tokens mapped to member profile IDs"
+    },
+    "/notificationEvents/{eventId}": {
+      "schema": "notificationEvents",
+      "description": "Notification events prepared or queued for member profiles"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "transactions",
+      "description": "Deposit transaction logs"
+    },
+    "/payments/{paymentId}": {
+      "schema": "payments",
+      "description": "Member payment records"
+    },
+    "/settings/{settingId}": {
+      "schema": "settings",
+      "description": "Organization settings document"
+    },
+    "/annualExpenses/{expenseId}": {
+      "schema": "annualExpenses",
+      "description": "Annual organization expense records"
+    }
+  }
+}

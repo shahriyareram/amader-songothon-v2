@@ -1,0 +1,9 @@
+{
+  "rules": {
+    "popupConfig": {
+      ".read": true,
+      ".write": "auth != null && (auth.uid == '2YNWowSVMrPBf8HwLlitJcJuMum2' || (auth.token.email != null && (auth.token.email == 'shahriyareram94@gmail.com' || auth.token.email == 'shahriyareram3@gmail.com' || auth.token.email == '01907006460@ourorganization.local')))",
+      ".validate": "newData.val() == null || (newData.hasChildren(['imageData', 'imageName']) && newData.child('imageData').isString() && newData.child('imageData').val().length <= 450000 && newData.child('imageName').isString())"
+    }
+  }
+}

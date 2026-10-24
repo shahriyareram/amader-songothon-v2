@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="38" fill="#047857"/>
+  <circle cx="96" cy="96" r="64" fill="#065f46"/>
+  <path d="M96 46 C68.386 46 46 68.386 46 96 C46 123.614 68.386 146 96 146 C123.614 146 146 123.614 146 96" fill="none" stroke="#34d399" stroke-width="8" stroke-linecap="round"/>
+  <text x="96" y="112" font-size="44" font-family="sans-serif" font-weight="900" fill="#ffffff" text-anchor="middle">সং</text>
+</svg>

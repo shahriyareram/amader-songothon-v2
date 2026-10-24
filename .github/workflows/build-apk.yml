@@ -1,0 +1,69 @@
+name: Build Android APK (Free)
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Dependencies
+        run: bun install
+      - name: Build Web
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://amader-songothon-backup-1.onrender.com' }}
+
+      - name: Verify Web Build Artifacts
+        run: |
+          test -f dist/index.html || { echo "dist/index.html missing"; exit 1; }
+          ls -la dist/assets/*.js || { echo "dist/assets/*.js missing"; exit 1; }
+
+      - name: Clean and Sync Capacitor Android Assets
+        run: |
+          rm -rf android/app/src/main/assets/public/*
+          npx cap sync android
+          test -f android/app/src/main/assets/public/index.html || { echo "android assets index.html missing"; exit 1; }
+          if grep -r "ais-dev-" android/app/src/main/assets/public/; then
+            echo "Error: Found stale ais-dev URL in Android assets!"
+            exit 1
+          fi
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Restore and Verify Google Services Configuration
+        run: |
+          if [ ! -f android/app/google-services.json ]; then
+            if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
+              echo "Restoring google-services.json from GitHub Secrets..."
+              echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+            elif [ -f android/app/google-services.json.b64 ]; then
+              echo "Restoring google-services.json from base64 backup..."
+              base64 -d android/app/google-services.json.b64 > android/app/google-services.json
+            fi
+          fi
+          test -f android/app/google-services.json || { echo "::error::android/app/google-services.json is missing! Please ensure it is committed to repository, provided via GOOGLE_SERVICES_JSON secret, or restored from backup."; exit 1; }
+          echo "android/app/google-services.json verified successfully."
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: amader-shongothon-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

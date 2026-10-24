@@ -1,0 +1,8 @@
+{
+  "name": "আমাদের সংগঠন",
+  "description": "বাংলা সংগঠন ব্যবস্থাপনা অ্যাপ - সদস্য তালিকা, ৫২ সপ্তাহের জমা ও বকেয়ার হিসাব",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

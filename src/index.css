@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Hind Siliguri', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+/* Custom scrollbar for mobile feel */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ========================================================= */
+/* ADMIN & MEMBER VISUAL SCOPES                              */
+/* Scoped isolation root selectors ensuring no cross-panel   */
+/* styles or accidental visual leakage occur.                */
+/* ========================================================= */
+
+#admin-app-root,
+.admin-panel-root {
+  /* Admin Panel Theme Scope - Any Admin-only styles or variables apply here */
+}
+
+#member-app-root,
+.member-panel-root {
+  /* Member Panel Theme Scope - Any Member-only styles or variables apply here */
+}
