@@ -4,6 +4,8 @@ import { CapacitorUpdater } from '@capgo/capacitor-updater';
 export const DEFAULT_OTA_MANIFEST_URL =
   'https://raw.githubusercontent.com/shahriyareram/amader-songothon-v2/main/ota-manifest.json';
 
+export const CURRENT_BASELINE_VERSION = '1.0.1';
+
 export const STORAGE_KEY_STAGED_VERSION = 'amader_songothon_ota_staged_version';
 
 export interface OtaManifest {
@@ -46,19 +48,27 @@ export function isValidOtaManifest(data: any): data is OtaManifest {
 
 /**
  * Compares two semantic version strings (e.g. "1.0.2" vs "1.0.1").
+ * Normalizes 'builtin' or empty versions to CURRENT_BASELINE_VERSION ('1.0.1')
+ * so that clean baseline APK installs are recognized as up-to-date and do not
+ * prompt for obsolete baseline versions.
  * Returns:
  *   1 if a > b (a is newer)
  *  -1 if a < b (a is older)
  *   0 if a === b (versions are equal)
  */
 export function compareVersions(a: string, b: string): number {
-  const cleanA = a.replace(/^v/i, '').trim();
-  const cleanB = b.replace(/^v/i, '').trim();
+  const resolve = (val: string): string => {
+    const clean = (val || '').replace(/^v/i, '').trim();
+    if (!clean || clean === 'builtin') {
+      return CURRENT_BASELINE_VERSION;
+    }
+    return clean;
+  };
 
-  // If either version is unknown or 'builtin', normalize appropriately
+  const cleanA = resolve(a);
+  const cleanB = resolve(b);
+
   if (cleanA === cleanB) return 0;
-  if (cleanA === 'builtin') return -1;
-  if (cleanB === 'builtin') return 1;
 
   const partsA = cleanA.split('.').map((p) => parseInt(p, 10) || 0);
   const partsB = cleanB.split('.').map((p) => parseInt(p, 10) || 0);
@@ -130,7 +140,8 @@ export async function checkAvailableOtaUpdate(
     }
 
     const currentInfo = await CapacitorUpdater.current();
-    const activeVersion = currentInfo.bundle?.version || 'builtin';
+    const rawVersion = currentInfo.bundle?.version;
+    const activeVersion = (!rawVersion || rawVersion === 'builtin') ? CURRENT_BASELINE_VERSION : rawVersion;
 
     // Staging marker hygiene: if the active bundle is already at or ahead of staged version, clear it
     try {
@@ -198,7 +209,8 @@ export async function downloadAndStageOtaUpdate(manifest: OtaManifest): Promise<
 
   try {
     const currentInfo = await CapacitorUpdater.current();
-    const activeVersion = currentInfo.bundle?.version || 'builtin';
+    const rawVersion = currentInfo.bundle?.version;
+    const activeVersion = (!rawVersion || rawVersion === 'builtin') ? CURRENT_BASELINE_VERSION : rawVersion;
 
     if (compareVersions(manifest.version, activeVersion) <= 0) {
       return { success: false, error: 'অ্যাপটি ইতিমধ্যে সর্বশেষ সংস্করণে রয়েছে।' };

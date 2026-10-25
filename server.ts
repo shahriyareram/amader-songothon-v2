@@ -1602,7 +1602,7 @@ async function startServer() {
   // Explicitly binds token to memberId so multiple profiles on the same mobile number remain isolated.
   app.post('/api/notifications/register-token', async (req, res) => {
     try {
-      const { token, memberId, memberName, phone, role } = req.body;
+      const { token, memberId, memberName, phone, role, platform } = req.body;
       if (!token || !memberId) {
         return res.status(400).json({ error: 'Token and memberId are required' });
       }
@@ -1619,7 +1619,7 @@ async function startServer() {
           memberName: memberName || '',
           phone: phone || '',
           role: role || 'member',
-          platform: 'web',
+          platform: platform || 'android',
           updatedAt: new Date().toISOString(),
           lastActiveAt: Date.now(),
         },
@@ -2369,6 +2369,8 @@ async function runFridayNightDueReminders(dhakaDateString: string): Promise<void
           priority: 'high',
           notification: {
             channelId: 'org_payment_alerts',
+            icon: 'ic_stat_notification',
+            color: '#047857',
             visibility: 'public',
             priority: 'high',
             defaultSound: true,

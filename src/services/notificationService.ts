@@ -199,6 +199,7 @@ export async function saveFcmTokenForMember(
         memberName: member.name || '',
         phone: member.phone || '',
         role: member.role || 'member',
+        platform: 'web',
       }),
     });
   } catch {
