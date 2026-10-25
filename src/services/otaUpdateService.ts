@@ -48,16 +48,120 @@ export function isValidOtaManifest(data: any): data is OtaManifest {
 
 /**
  * Normalizes any raw bundle version string to a clean semantic version.
- * If raw version is empty, 'builtin', 'unknown', or undefined, it resolves to CURRENT_BASELINE_VERSION ('1.0.1')
- * so that clean baseline APK installs are recognized as up-to-date and do not
- * prompt for obsolete baseline versions.
+ * - Handles empty, 'builtin', 'unknown', or undefined versions.
+ * - If the version is numeric and <= CURRENT_BASELINE_VERSION (e.g. "1.0", "1.0.0"),
+ *   it resolves to CURRENT_BASELINE_VERSION ('1.0.1') because the APK build was pre-packaged
+ *   with the v1.0.1 codebase while Android's native versionName was configured as "1.0".
+ * - Higher actual OTA versions (e.g. "1.0.2", "1.1.0") are preserved.
  */
 export function normalizeBundleVersion(rawVersion?: string | null): string {
   const clean = (rawVersion || '').replace(/^v/i, '').trim();
   if (!clean || clean.toLowerCase() === 'builtin' || clean.toLowerCase() === 'unknown') {
     return CURRENT_BASELINE_VERSION;
   }
+
+  const parts = clean.split('.').map((p) => parseInt(p, 10));
+  if (parts.some((p) => isNaN(p))) {
+    return clean;
+  }
+
+  const baselineParts = CURRENT_BASELINE_VERSION.split('.').map((p) => parseInt(p, 10) || 0);
+  const maxLen = Math.max(parts.length, baselineParts.length);
+  let isLessOrEqual = true;
+  for (let i = 0; i < maxLen; i++) {
+    const p = parts[i] || 0;
+    const b = baselineParts[i] || 0;
+    if (p > b) {
+      isLessOrEqual = false;
+      break;
+    }
+    if (p < b) {
+      isLessOrEqual = true;
+      break;
+    }
+  }
+
+  if (isLessOrEqual) {
+    return CURRENT_BASELINE_VERSION;
+  }
+
   return clean;
+}
+
+/**
+ * Detects whether the current execution context is the APK bundled baseline
+ * (as opposed to an external OTA bundle downloaded and loaded by Capgo).
+ */
+export function isBundledBaseline(
+  currentInfo?: { bundle?: { id?: string; name?: string; version?: string } | null; native?: string } | null
+): boolean {
+  if (!currentInfo || !currentInfo.bundle) return true;
+  const bundleId = (currentInfo.bundle.id || '').trim().toLowerCase();
+  const bundleName = (currentInfo.bundle.name || '').trim().toLowerCase();
+  if (!bundleId || bundleId === 'builtin' || bundleName === 'builtin') {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Resolves the currently active running version from CapacitorUpdater.current().
+ * If the app is running the bundled APK assets (id: 'builtin' / empty / version <= baseline),
+ * it returns CURRENT_BASELINE_VERSION ('1.0.1').
+ * Otherwise, if an OTA bundle is active, it returns that bundle's normalized version.
+ */
+export function getActiveRunningVersion(
+  currentInfo?: { bundle?: { id?: string; name?: string; version?: string } | null; native?: string } | null
+): string {
+  if (isBundledBaseline(currentInfo)) {
+    return CURRENT_BASELINE_VERSION;
+  }
+  return normalizeBundleVersion(currentInfo?.bundle?.version);
+}
+
+/**
+ * Verifies that the OTA ZIP bundle URL exists and is downloadable (returns HTTP 200/206).
+ * Performs a HEAD request with automatic redirect following, and falls back to a range GET request
+ * if HEAD is rejected with 405 Method Not Allowed.
+ */
+export async function verifyOtaBundleUrl(url: string): Promise<boolean> {
+  if (!url || !/^https:\/\/[^\s]+$/i.test(url.trim())) return false;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    try {
+      const headRes = await fetch(url.trim(), {
+        method: 'HEAD',
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      if (headRes.ok) return true;
+
+      // If server does not support HEAD (405), fallback to range GET
+      if (headRes.status === 405) {
+        const getController = new AbortController();
+        const getTimer = setTimeout(() => getController.abort(), 6000);
+        try {
+          const getRes = await fetch(url.trim(), {
+            method: 'GET',
+            headers: { Range: 'bytes=0-0' },
+            signal: getController.signal,
+          });
+          clearTimeout(getTimer);
+          return getRes.ok || getRes.status === 206;
+        } catch {
+          clearTimeout(getTimer);
+          return false;
+        }
+      }
+      return false;
+    } catch {
+      clearTimeout(timer);
+      return false;
+    }
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -128,6 +232,7 @@ export async function fetchOtaManifest(manifestUrl = DEFAULT_OTA_MANIFEST_URL): 
  * - Read-only operation: DOES NOT download or stage any bundle
  * - Checks Capgo's currently active bundle version
  * - Sanitizes stale staged markers if current active version is already at or ahead
+ * - Verifies that the release ZIP is actually reachable before declaring update available
  * - Returns detailed update information only if a newer version is ready to be installed
  */
 export async function checkAvailableOtaUpdate(
@@ -144,7 +249,7 @@ export async function checkAvailableOtaUpdate(
     }
 
     const currentInfo = await CapacitorUpdater.current();
-    const activeVersion = normalizeBundleVersion(currentInfo.bundle?.version);
+    const activeVersion = getActiveRunningVersion(currentInfo);
 
     // Staging marker hygiene: if the active bundle is already at or ahead of staged version, clear it
     try {
@@ -165,6 +270,22 @@ export async function checkAvailableOtaUpdate(
         newVersion: manifest.version,
         isAlreadyStaged: false,
         reason: 'already_up_to_date',
+      };
+    }
+
+    // Requirement 6: Verify that the OTA release ZIP actually exists before declaring an update available
+    const isZipReachable = await verifyOtaBundleUrl(manifest.url);
+    if (!isZipReachable) {
+      console.warn(
+        `[OTA] Manifest specifies version ${manifest.version}, but ZIP asset is unreachable (HTTP 404/network): ${manifest.url}`
+      );
+      return {
+        hasUpdate: false,
+        manifest,
+        currentVersion: activeVersion,
+        newVersion: manifest.version,
+        isAlreadyStaged: false,
+        reason: 'bundle_zip_unreachable',
       };
     }
 
@@ -212,10 +333,16 @@ export async function downloadAndStageOtaUpdate(manifest: OtaManifest): Promise<
 
   try {
     const currentInfo = await CapacitorUpdater.current();
-    const activeVersion = normalizeBundleVersion(currentInfo.bundle?.version);
+    const activeVersion = getActiveRunningVersion(currentInfo);
 
     if (compareVersions(manifest.version, activeVersion) <= 0) {
       return { success: false, error: 'অ্যাপটি ইতিমধ্যে সর্বশেষ সংস্করণে রয়েছে।' };
+    }
+
+    // Verify ZIP existence before attempting download
+    const isZipReachable = await verifyOtaBundleUrl(manifest.url);
+    if (!isZipReachable) {
+      return { success: false, error: 'আপডেট প্যাকেজটি (ZIP) সার্ভারে পাওয়া যায়নি (404 Not Found)।' };
     }
 
     // 1. Download bundle zip with native SHA-256 checksum verification
