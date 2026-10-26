@@ -306,42 +306,62 @@ function formatWeekNumbersList(weeks) {
   const sorted = Array.from(new Set(weeks)).sort((a, b) => a - b);
   const bnWeeks = sorted.map((w) => toBengaliNumber(w));
   if (bnWeeks.length === 1) {
-    return `${bnWeeks[0]}\u09A4\u09AE`;
+    return `${bnWeeks[0]} \u09A4\u09AE`;
   }
   if (bnWeeks.length === 2) {
-    return `${bnWeeks[0]} \u0993 ${bnWeeks[1]}\u09A4\u09AE`;
+    return `${bnWeeks[0]} \u0993 ${bnWeeks[1]} \u09A4\u09AE`;
   }
   const allExceptLastTwo = bnWeeks.slice(0, bnWeeks.length - 2);
   const secondLast = bnWeeks[bnWeeks.length - 2];
   const last = bnWeeks[bnWeeks.length - 1];
-  return `${allExceptLastTwo.join(", ")}, ${secondLast} \u0993 ${last}\u09A4\u09AE`;
+  return `${allExceptLastTwo.join(", ")}, ${secondLast} \u0993 ${last} \u09A4\u09AE`;
 }
 function buildWeeklyPaymentNotificationMessage(params) {
   const clearedArrears = (params.clearedArrearWeeks || []).filter((w) => w > 0).sort((a, b) => a - b);
   const remainingDue = (params.remainingDueWeeks || []).filter((w) => w > 0).sort((a, b) => a - b);
   const advance = (params.advanceWeeks || []).filter((w) => w > 0).sort((a, b) => a - b);
+  const currentWeekPaid = Boolean(params.currentWeekPaid);
   const hasCleared = clearedArrears.length > 0;
   const hasRemaining = remainingDue.length > 0;
   const hasAdvance = advance.length > 0;
-  if (hasCleared && hasAdvance) {
+  if (hasCleared && currentWeekPaid && hasAdvance) {
     const clearedStr = formatWeekNumbersList(clearedArrears);
     const advanceStr = formatWeekNumbersList(advance);
-    return `\u0986\u09AA\u09A8\u09BE\u09B0 ${clearedStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09AA\u09B0\u09BF\u09B6\u09CB\u09A7 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u098F\u0995\u0987\u09B8\u09BE\u09A5\u09C7 ${advanceStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099F\u09BE\u0995\u09BE \u0985\u0997\u09CD\u09B0\u09BF\u09AE \u099C\u09AE\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964`;
+    return `\u0986\u09AA\u09A8\u09BE\u09B0 ${clearedStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09AA\u09B0\u09BF\u09B6\u09CB\u09A7 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7 \u098F\u09AC\u0982 \u099A\u09B2\u09A4\u09BF \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099C\u09AE\u09BE\u09B8\u09B9 ${advanceStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u0985\u0997\u09CD\u09B0\u09BF\u09AE \u099C\u09AE\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09B8\u09BE\u09A5\u09C7 \u09A5\u09BE\u0995\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964`;
+  }
+  if (hasCleared && currentWeekPaid && !hasAdvance) {
+    const clearedStr = formatWeekNumbersList(clearedArrears);
+    return `\u0986\u09AA\u09A8\u09BE\u09B0 ${clearedStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09AA\u09B0\u09BF\u09B6\u09CB\u09A7 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7 \u098F\u09AC\u0982 \u099A\u09B2\u09A4\u09BF \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099C\u09AE\u09BE \u09AF\u09CB\u0997 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09B8\u09BE\u09A5\u09C7 \u09A5\u09BE\u0995\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964`;
+  }
+  if (!hasCleared && currentWeekPaid && hasAdvance) {
+    const advanceStr = formatWeekNumbersList(advance);
+    return `\u0986\u09AA\u09A8\u09BE\u09B0 \u099A\u09B2\u09A4\u09BF \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099C\u09AE\u09BE\u09B8\u09B9 ${advanceStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u0985\u0997\u09CD\u09B0\u09BF\u09AE \u099C\u09AE\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09B8\u09BE\u09A5\u09C7 \u09A5\u09BE\u0995\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964`;
+  }
+  if (hasCleared && !currentWeekPaid && hasAdvance) {
+    const clearedStr = formatWeekNumbersList(clearedArrears);
+    const advanceStr = formatWeekNumbersList(advance);
+    return `\u0986\u09AA\u09A8\u09BE\u09B0 ${clearedStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09AA\u09B0\u09BF\u09B6\u09CB\u09A7 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7 \u098F\u09AC\u0982 ${advanceStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u0985\u0997\u09CD\u09B0\u09BF\u09AE \u099C\u09AE\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09B8\u09BE\u09A5\u09C7 \u09A5\u09BE\u0995\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964`;
   }
   if (hasCleared && hasRemaining) {
     const clearedStr = formatWeekNumbersList(clearedArrears);
     const dueStr = formatWeekNumbersList(remainingDue);
+    if (currentWeekPaid) {
+      return `\u0986\u09AA\u09A8\u09BE\u09B0 ${clearedStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09AA\u09B0\u09BF\u09B6\u09CB\u09A7 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7 \u098F\u09AC\u0982 \u099A\u09B2\u09A4\u09BF \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099C\u09AE\u09BE \u09AF\u09CB\u0997 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09A4\u09AC\u09C7 ${dueStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099F\u09BE\u0995\u09BE \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09B0\u09AF\u09BC\u09C7\u099B\u09C7\u0964`;
+    }
     return `\u0986\u09AA\u09A8\u09BE\u09B0 ${clearedStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09AA\u09B0\u09BF\u09B6\u09CB\u09A7 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 ${dueStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099F\u09BE\u0995\u09BE \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09B0\u09AF\u09BC\u09C7\u099B\u09C7\u0964`;
   }
-  if (hasCleared && !hasAdvance && !hasRemaining) {
+  if (hasCleared && !currentWeekPaid && !hasAdvance && !hasRemaining) {
     const clearedStr = formatWeekNumbersList(clearedArrears);
-    return `\u0986\u09AA\u09A8\u09BE\u09B0 ${clearedStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09AA\u09B0\u09BF\u09B6\u09CB\u09A7 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964`;
+    return `\u0986\u09AA\u09A8\u09BE\u09B0 ${clearedStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09AA\u09B0\u09BF\u09B6\u09CB\u09A7 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09B8\u09BE\u09A5\u09C7 \u09A5\u09BE\u0995\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964`;
   }
-  if (hasAdvance && !hasCleared && !hasRemaining) {
+  if (!hasCleared && currentWeekPaid && !hasAdvance && !hasRemaining) {
+    return "\u0986\u09AA\u09A8\u09BE\u09B0 \u099A\u09B2\u09A4\u09BF \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099C\u09AE\u09BE \u09AF\u09CB\u0997 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09B8\u09BE\u09A5\u09C7 \u09A5\u09BE\u0995\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964";
+  }
+  if (hasAdvance && !hasCleared && !currentWeekPaid && !hasRemaining) {
     const advanceStr = formatWeekNumbersList(advance);
-    return `\u0986\u09AA\u09A8\u09BE\u09B0 ${advanceStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099F\u09BE\u0995\u09BE \u0985\u0997\u09CD\u09B0\u09BF\u09AE \u099C\u09AE\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964`;
+    return `\u0986\u09AA\u09A8\u09BE\u09B0 ${advanceStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u0985\u0997\u09CD\u09B0\u09BF\u09AE \u099C\u09AE\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09B8\u09BE\u09A5\u09C7 \u09A5\u09BE\u0995\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964`;
   }
-  if (hasRemaining && !hasCleared && !hasAdvance) {
+  if (hasRemaining && !hasCleared && !currentWeekPaid && !hasAdvance) {
     const dueStr = formatWeekNumbersList(remainingDue);
     return `\u0986\u09AA\u09A8\u09BE\u09B0 ${dueStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099F\u09BE\u0995\u09BE \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09B0\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09A8\u09BF\u09B0\u09CD\u09A6\u09BF\u09B7\u09CD\u099F \u09B8\u09AE\u09AF\u09BC\u09C7 \u0986\u09AA\u09A8\u09BE\u09B0 \u099F\u09BE\u0995\u09BE \u099C\u09AE\u09BE \u09A6\u09BF\u09A8\u0964`;
   }
@@ -350,16 +370,17 @@ function buildWeeklyPaymentNotificationMessage(params) {
     const dueStr = formatWeekNumbersList(remainingDue);
     return `\u0986\u09AA\u09A8\u09BE\u09B0 ${advanceStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099F\u09BE\u0995\u09BE \u0985\u0997\u09CD\u09B0\u09BF\u09AE \u099C\u09AE\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09A4\u09AC\u09C7 ${dueStr} \u09B8\u09AA\u09CD\u09A4\u09BE\u09B9\u09C7\u09B0 \u099F\u09BE\u0995\u09BE \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09B0\u09AF\u09BC\u09C7\u099B\u09C7\u0964`;
   }
-  return "\u0986\u09AA\u09A8\u09BE\u09B0 \u099C\u09AE\u09BE\u09B0 \u09A4\u09A5\u09CD\u09AF \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964";
+  return "\u0986\u09AA\u09A8\u09BE\u09B0 \u099C\u09AE\u09BE\u09B0 \u09A4\u09A5\u09CD\u09AF \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964 \u09B8\u09BE\u09A5\u09C7 \u09A5\u09BE\u0995\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09A7\u09A8\u09CD\u09AF\u09AC\u09BE\u09A6\u0964";
 }
 function getWeeklyPaymentNotificationTitle(params) {
   const clearedArrears = (params.clearedArrearWeeks || []).filter((w) => w > 0);
   const remainingDue = (params.remainingDueWeeks || []).filter((w) => w > 0);
   const advance = (params.advanceWeeks || []).filter((w) => w > 0);
-  if (remainingDue.length > 0 && clearedArrears.length === 0) {
+  const currentWeekPaid = Boolean(params.currentWeekPaid);
+  if (remainingDue.length > 0 && clearedArrears.length === 0 && !currentWeekPaid) {
     return "\u09B8\u09BE\u09AA\u09CD\u09A4\u09BE\u09B9\u09BF\u0995 \u099C\u09AE\u09BE \u09AC\u0995\u09C7\u09AF\u09BC\u09BE \u09B0\u09AF\u09BC\u09C7\u099B\u09C7";
   }
-  if (advance.length > 0 && clearedArrears.length === 0 && remainingDue.length === 0) {
+  if (advance.length > 0 && clearedArrears.length === 0 && remainingDue.length === 0 && !currentWeekPaid) {
     return "\u0985\u0997\u09CD\u09B0\u09BF\u09AE \u099C\u09AE\u09BE \u09B8\u09AB\u09B2 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7";
   }
   return "\u09B8\u09BE\u09AA\u09CD\u09A4\u09BE\u09B9\u09BF\u0995 \u099C\u09AE\u09BE \u09B8\u09AB\u09B2 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7";
@@ -401,7 +422,8 @@ try {
 var ADMIN_FIREBASE_UID = "2YNWowSVMrPBf8HwLlitJcJuMum2";
 var AUTHORIZED_ADMIN_EMAILS = [
   "shahriyareram3@gmail.com",
-  "shahriyareram94@gmail.com"
+  "shahriyareram94@gmail.com",
+  "01907006460@ourorganization.local"
 ];
 var GMAIL_OAUTH_CLIENT_ID = process.env.VITE_GOOGLE_OAUTH_CLIENT_ID || "511488965421-2h52lrf2d7r6at5e6nugi7mct1lmqpfe.apps.googleusercontent.com";
 var adminAuthInstance = null;
@@ -1303,7 +1325,7 @@ async function startServer() {
       if (!imageData || typeof imageData !== "string") {
         return res.status(400).json({ error: "\u09B8\u09A0\u09BF\u0995 \u099B\u09AC\u09BF\u09B0 \u09A1\u09BE\u099F\u09BE \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8\u0964" });
       }
-      if (imageData.length > 45e4) {
+      if (imageData.length > 5e5) {
         return res.status(400).json({ error: "\u099B\u09AC\u09BF\u09B0 \u09B8\u09BE\u0987\u099C \u0985\u09A8\u09C1\u09AE\u09CB\u09A6\u09BF\u09A4 \u09B8\u09C0\u09AE\u09BE\u09B0 (\u09E9\u09E6\u09E6 KB) \u099A\u09C7\u09DF\u09C7 \u09AC\u09C7\u09B6\u09BF\u0964" });
       }
       if (!clientDb) {
@@ -1671,7 +1693,7 @@ async function startServer() {
   });
   app.post("/api/notifications/register-token", async (req, res) => {
     try {
-      const { token, memberId, memberName, phone, role } = req.body;
+      const { token, memberId, memberName, phone, role, platform } = req.body;
       if (!token || !memberId) {
         return res.status(400).json({ error: "Token and memberId are required" });
       }
@@ -1685,7 +1707,7 @@ async function startServer() {
           memberName: memberName || "",
           phone: phone || "",
           role: role || "member",
-          platform: "web",
+          platform: platform || "android",
           updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
           lastActiveAt: Date.now()
         },
@@ -1782,6 +1804,8 @@ async function startServer() {
                     priority: "high",
                     notification: {
                       channelId: "org_payment_alerts",
+                      icon: "ic_stat_notification",
+                      color: "#047857",
                       visibility: "public",
                       priority: "high",
                       defaultSound: true
@@ -2085,6 +2109,8 @@ async function runFridayMorningNotifications(dhakaDateString) {
           priority: "high",
           notification: {
             channelId: "org_payment_alerts",
+            icon: "ic_stat_notification",
+            color: "#047857",
             visibility: "public",
             priority: "high",
             defaultSound: true
@@ -2286,6 +2312,8 @@ async function runFridayNightDueReminders(dhakaDateString) {
           priority: "high",
           notification: {
             channelId: "org_payment_alerts",
+            icon: "ic_stat_notification",
+            color: "#047857",
             visibility: "public",
             priority: "high",
             defaultSound: true

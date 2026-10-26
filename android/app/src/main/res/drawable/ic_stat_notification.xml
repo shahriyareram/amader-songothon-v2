@@ -3,9 +3,37 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- White monochrome notification silhouette: Shield with central Checkmark -->
+    <!-- Amader Songothon: Community Solidarity & Unity Emblem (3 persons joined in unity) -->
+    <!-- Top person head -->
     <path
         android:fillColor="#FFFFFF"
-        android:fillType="evenOdd"
-        android:pathData="M12,1L3,5v6c0,5.55 3.84,10.74 9,12c5.16,-1.26 9,-6.45 9,-12V5L12,1zM19,11c0,4.52 -2.98,8.69 -7,9.93c-4.02,-1.24 -7,-5.41 -7,-9.93V6.3l7,-3.11l7,3.11V11zM10,15.59L6.71,12.3l1.41,-1.41L10,12.77l5.88,-5.88l1.41,1.41L10,15.59z"/>
+        android:pathData="M12,4.5m-2,0a2,2 0,1 1,4,0a2,2 0,1 1,-4,0"/>
+    <!-- Left person head -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M5.5,10.5m-1.7,0a1.7,1.7 0,1 1,3.4,0a1.7,1.7 0,1 1,-3.4,0"/>
+    <!-- Right person head -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18.5,10.5m-1.7,0a1.7,1.7 0,1 1,3.4,0a1.7,1.7 0,1 1,-3.4,0"/>
+    <!-- Upper connecting arms / solidarity arch -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,7.8c-1.8,0 -3.4,0.7 -4.6,1.9l1.5,1.2c0.8,-0.8 1.9,-1.3 3.1,-1.3s2.3,0.5 3.1,1.3l1.5,-1.2c-1.2,-1.2 -2.8,-1.9 -4.6,-1.9z"/>
+    <!-- Center community body foundation -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,13.5c-2.4,0 -4.5,1.3 -5.7,3.3l1.6,1c0.9,-1.5 2.5,-2.5 4.1,-2.5s3.2,1 4.1,2.5l1.6,-1c-1.2,-2 -3.3,-3.3 -5.7,-3.3z"/>
+    <!-- Left figure body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M5.5,13.2c-1.6,0 -3,0.9 -3.8,2.2l1.7,1c0.5,-0.8 1.3,-1.3 2.1,-1.3c0.7,0 1.3,0.3 1.7,0.8l1.6,-1.1c-0.8,-1 -2,-1.6 -3.3,-1.6z"/>
+    <!-- Right figure body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18.5,13.2c-1.3,0 -2.5,0.6 -3.3,1.6l1.6,1.1c0.4,-0.5 1,-0.8 1.7,-0.8c0.8,0 1.6,0.5 2.1,1.3l1.7,-1c-0.8,-1.3 -2.2,-2.2 -3.8,-2.2z"/>
+    <!-- Lower unity bond arch -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,18.5c-3.2,0 -6,-1.8 -7.4,-4.4l-1.7,1c1.8,3.2 5.2,5.4 9.1,5.4s7.3,-2.2 9.1,-5.4l-1.7,-1c-1.4,2.6 -4.2,4.4 -7.4,4.4z"/>
 </vector>
